@@ -1,0 +1,103 @@
+/* Profile Completeness Styles */
+.profile-completeness {
+  background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 24px;
+  margin: 24px;
+}
+
+.profile-completeness.complete {
+  background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+  border-color: #10b981;
+}
+
+.completeness-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.completeness-icon {
+  font-size: 32px;
+  flex-shrink: 0;
+}
+
+.completeness-header h3 {
+  font-size: 18px;
+  font-weight: 700;
+  margin: 0 0 4px 0;
+  color: #1a202c;
+}
+
+.completeness-header p {
+  font-size: 14px;
+  color: #718096;
+  margin: 0;
+}
+
+.completeness-percentage {
+  font-size: 32px;
+  font-weight: 700;
+  margin-left: auto;
+}
+
+/* Progress Bar */
+.progress-bar {
+  width: 100%;
+  height: 12px;
+  background: #e2e8f0;
+  border-radius: 6px;
+  overflow: hidden;
+  margin-bottom: 16px;
+}
+
+.progress-fill {
+  height: 100%;
+  transition: width 0.5s ease, background-color 0.3s ease;
+  border-radius: 6px;
+}
+
+/* Checklist */
+.completeness-checklist {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.checklist-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 14px;
+  color: #4a5568;
+  padding: 8px 12px;
+  border-radius: 6px;
+  background: white;
+}
+
+.checklist-item.incomplete {
+  opacity: 0.8;
+}
+
+.check-icon {
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+/* Animation */
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.profile-completeness {
+  animation: slideIn 0.3s ease-out;
+}

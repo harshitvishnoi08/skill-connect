@@ -9,7 +9,6 @@ const { Server } = require('socket.io');
 const authRoutes = require('./routes/auth');
 const userRoutes = require('./routes/users');
 const connectionRoutes = require('./routes/connections');
-const messageRoutes = require('./routes/messages');
 const { verifySocketToken } = require('./middleware/socketAuth');
 const Message = require('./models/Message');
 const User = require('./models/User');
@@ -31,7 +30,7 @@ app.use(cors({ origin: process.env.CLIENT_URL || '*' }));
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/connections', connectionRoutes);
-app.use('/api/messages', messageRoutes);
+
 
 const activeUsers = new Map(); // userId -> socketId
 

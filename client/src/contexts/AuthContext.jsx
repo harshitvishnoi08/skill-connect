@@ -1,54 +1,94 @@
 import React, { createContext, useState, useEffect } from 'react';
 import axios from 'axios';
-import { io } from 'socket.io-client';
 
 export const AuthContext = createContext();
 
-const API = import.meta.env.VITE_API_URL || 'http://localhost:5000';
-
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(() => {
-    try { return JSON.parse(localStorage.getItem('user')); } catch { return null; }
+  const [user, setUser] = useState(null);
+  const [token, setToken] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  // Configure axios instance
+  const axiosInstance = axios.create({
+    baseURL: 'http://localhost:5000', // Your backend URL
   });
-  const [token, setToken] = useState(() => localStorage.getItem('token'));
-  const [socket, setSocket] = useState(null);
 
-  useEffect(() => {
-    if (token && !socket) {
-      const s = io(API, { auth: { token } });
-      s.on('connect_error', (err) => console.error('socket error', err));
-      setSocket(s);
+  // Add token to requests
+  axiosInstance.interceptors.request.use(
+    (config) => {
+      const storedToken = localStorage.getItem('token');
+      if (storedToken) {
+        config.headers.Authorization = `Bearer ${storedToken}`;
+      }
+      return config;
+    },
+    (error) => Promise.reject(error)
+  );
+
+  // Handle 401 errors (expired/invalid tokens)
+  axiosInstance.interceptors.response.use(
+    (response) => response,
+    (error) => {
+      if (error.response?.status === 401) {
+        logout();
+      }
+      return Promise.reject(error);
     }
-    return () => {
-      if (socket) socket.disconnect();
-    };
-  }, [token]);
+  );
 
-  const login = (token, user) => {
-    localStorage.setItem('token', token);
-    localStorage.setItem('user', JSON.stringify(user));
-    setToken(token);
-    setUser(user);
+  // Check if user is already logged in on mount
+  useEffect(() => {
+    const checkAuth = async () => {
+      const storedToken = localStorage.getItem('token');
+      const storedUser = localStorage.getItem('user');
+
+      if (storedToken && storedUser) {
+        setToken(storedToken);
+        setUser(JSON.parse(storedUser));
+        
+        // Optionally verify token with backend
+        try {
+          const res = await axiosInstance.get('/auth/me');
+          setUser(res.data.user);
+        } catch (error) {
+          console.error('Token verification failed:', error);
+          logout();
+        }
+      }
+      setLoading(false);
+    };
+
+    checkAuth();
+  }, []);
+
+  const login = (newToken, newUser) => {
+    setToken(newToken);
+    setUser(newUser);
+    localStorage.setItem('token', newToken);
+    localStorage.setItem('user', JSON.stringify(newUser));
   };
+
   const logout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
     setToken(null);
     setUser(null);
-    if (socket) { socket.disconnect(); setSocket(null); }
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    localStorage.removeItem('rememberedEmail');
   };
 
-  const axiosInstance = axios.create({
-    baseURL: API + '/api',
-  });
-  axiosInstance.interceptors.request.use(cfg => {
-    if (token) cfg.headers.Authorization = `Bearer ${token}`;
-    return cfg;
-  });
+  const value = {
+    user,
+    token,
+    loading,
+    login,
+    logout,
+    axios: axiosInstance,
+    isAuthenticated: !!token,
+  };
 
   return (
-    <AuthContext.Provider value={{ user, token, socket, login, logout, axios: axiosInstance }}>
-      {children}
+    <AuthContext.Provider value={value}>
+      {!loading && children}
     </AuthContext.Provider>
   );
 };
